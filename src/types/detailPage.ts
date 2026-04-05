@@ -13,4 +13,10 @@ export type detailPage2 = {
     name:string;
     profile_path:string;
     character:string;
-}
+};
+
+export type MovieDetailResponse = detailPage & {
+    credits: {
+        cast: detailPage2[];
+    };
+};
