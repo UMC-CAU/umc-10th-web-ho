@@ -4,6 +4,8 @@ import MoviePage from './pages/MoviePage';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import NotFoundPage from './pages/NotFoundPage';
 import MovieDetailPage from './pages/MovieDetailPage';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
 
 
 const router = createBrowserRouter([
@@ -20,8 +22,19 @@ const router = createBrowserRouter([
       {
         path:'movie/:movieId',
         element:<MovieDetailPage/>,
-      }
+      },
+    
     ]
+    
+  },
+  
+  {
+    path: '/login',
+    element: <Login />,
+  },
+  {
+    path: '/signup',
+    element: <Signup />,
   }
 ]);
 
