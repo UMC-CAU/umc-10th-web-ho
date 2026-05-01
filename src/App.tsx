@@ -6,6 +6,9 @@ import NotFoundPage from './pages/NotFoundPage';
 import MovieDetailPage from './pages/MovieDetailPage';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import GoogleOAuthCallbackPage from './pages/GoogleOAuthCallbackPage';
+import ProtectedRoute from './components/ProtectedRoute';
+import ProfilePage from './pages/ProfilePage';
 
 
 const router = createBrowserRouter([
@@ -35,6 +38,18 @@ const router = createBrowserRouter([
   {
     path: '/signup',
     element: <Signup />,
+  },
+  {
+    path: '/auth/google/callback',
+    element: <GoogleOAuthCallbackPage />,
+  },
+  {
+    path: '/profile',
+    element: (
+      <ProtectedRoute>
+        <ProfilePage />
+      </ProtectedRoute>
+    ),
   }
 ]);
 

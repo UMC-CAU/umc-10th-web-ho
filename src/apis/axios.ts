@@ -1,15 +1,23 @@
 import axios from "axios";
-import { useLocalStorage } from "../hooks/useLocalStorage";
 
 const axiosInstance = axios.create({
     baseURL: import.meta.env.VITE_SERVER_API_URL,
 });
 
 axiosInstance.interceptors.request.use((config) => {
-    const { getItem } = useLocalStorage<string>("ACCESS_TOKEN");
-    const token = getItem();
+    const storedToken = window.localStorage.getItem("ACCESS_TOKEN");
+    let token: string | null = null;
+
+    if (storedToken) {
+        try {
+            token = JSON.parse(storedToken) as string;
+        } catch {
+            token = storedToken;
+        }
+    }
 
     if (token) {
+        config.headers = config.headers ?? {};
         config.headers.Authorization = `Bearer ${token}`;
     }
 

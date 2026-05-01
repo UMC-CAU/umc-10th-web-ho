@@ -37,3 +37,14 @@ export async function postLogin(payload: LoginRequest) {
     );
     return response.data.data;
 }
+
+export function getGoogleLoginUrl() {
+    const baseUrl = import.meta.env.VITE_SERVER_API_URL.replace(/\/$/, "");
+
+    return `${baseUrl}/auth/google`;
+}
+
+export async function postSignOut() {
+    const response = await axiosInstance.post("/auth/signout");
+    return response.data;
+}

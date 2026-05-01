@@ -1,13 +1,19 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { postLogin } from "../apis/auth";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { loginSchema, type LoginFormValues } from "../types/auth";
+import GoogleLoginButton from "../components/GoogleLoginButton";
 
 const Login = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { setItem: setAuthToken } = useLocalStorage<string>("ACCESS_TOKEN");
+    const fromPath =
+        typeof location.state === "object" && location.state && "from" in location.state
+            ? `${location.state.from.pathname}${location.state.from.search ?? ""}`
+            : "/";
 
     const {
         register,
@@ -25,7 +31,7 @@ const Login = () => {
     const handleLogin = async (values: LoginFormValues) => {
         const token = await postLogin(values);
         setAuthToken(token.accessToken);
-        navigate("/");
+        navigate(fromPath, { replace: true });
     };
 
     return (
@@ -74,6 +80,14 @@ const Login = () => {
                 >
                     {isSubmitting ? "로그인 중..." : "로그인"}
                 </button>
+
+                <div className="flex items-center gap-3 py-2">
+                    <span className="h-px flex-1 bg-gray-200" />
+                    <span className="text-xs text-gray-400">또는</span>
+                    <span className="h-px flex-1 bg-gray-200" />
+                </div>
+
+                <GoogleLoginButton returnTo={fromPath} />
 
                 <p className="text-center text-sm text-gray-600">
                     계정이 없나요?{" "}
