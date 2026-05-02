@@ -10,6 +10,7 @@ const Login = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { setItem: setAuthToken } = useLocalStorage<string>("ACCESS_TOKEN");
+    const { setItem: setRefreshToken } = useLocalStorage<string>("REFRESH_TOKEN");
     const fromPath =
         typeof location.state === "object" && location.state && "from" in location.state
             ? `${location.state.from.pathname}${location.state.from.search ?? ""}`
@@ -31,6 +32,7 @@ const Login = () => {
     const handleLogin = async (values: LoginFormValues) => {
         const token = await postLogin(values);
         setAuthToken(token.accessToken);
+        if (token.refreshToken) setRefreshToken(token.refreshToken);
         navigate(fromPath, { replace: true });
     };
 

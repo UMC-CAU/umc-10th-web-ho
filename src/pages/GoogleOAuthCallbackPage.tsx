@@ -6,11 +6,13 @@ export default function GoogleOAuthCallbackPage() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const { setItem: setAccessToken } = useLocalStorage<string>("ACCESS_TOKEN");
+    const { setItem: setRefreshToken } = useLocalStorage<string>("REFRESH_TOKEN");
     const { getItem: getGoogleReturnTo, removeItem: removeGoogleReturnTo } =
         useLocalStorage<string>("GOOGLE_RETURN_TO");
 
     useEffect(() => {
         const accessToken = searchParams.get("accessToken");
+        const refreshToken = searchParams.get("refreshToken");
         const returnTo = getGoogleReturnTo();
 
         if (!accessToken) {
@@ -20,6 +22,7 @@ export default function GoogleOAuthCallbackPage() {
         }
 
         setAccessToken(accessToken);
+        if (refreshToken) setRefreshToken(refreshToken);
         removeGoogleReturnTo();
 
         navigate(returnTo ?? "/", { replace: true });
