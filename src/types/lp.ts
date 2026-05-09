@@ -18,6 +18,12 @@ export interface Like {
     lpId: number;
 }
 
+export interface Author {
+    id: number;
+    name?: string;
+    email?: string;
+}
+
 export interface Lp {
     id: number;
     title: string;
@@ -33,6 +39,22 @@ export interface Lp {
 
 export interface LpListData {
     data: Lp[];
+    nextCursor?: number | null;
+    hasNext?: boolean;
+}
+
+export interface Comment {
+    id: number;
+    content: string;
+    lpId: number;
+    authorId?: number;
+    createdAt: string;
+    updatedAt?: string;
+    author?: Author;
+}
+
+export interface CommentListData {
+    data: Comment[];
     nextCursor?: number | null;
     hasNext?: boolean;
 }

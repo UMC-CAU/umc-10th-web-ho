@@ -1,17 +1,22 @@
 import axiosInstance from "./axios";
-import type { CommonResponse, CreateLpRequest, Lp, LpListData, SortOrder } from "../types/lp";
+import type { CommentListData, CommonResponse, CreateLpRequest, Lp, LpListData, SortOrder } from "../types/lp";
 
-export async function getLps(order: SortOrder) {
+type InfiniteListParams = {
+    cursor?: number;
+    order: SortOrder;
+};
+
+export async function getLps({ cursor = 0, order }: InfiniteListParams) {
     const response = await axiosInstance.get<CommonResponse<LpListData>>("/lps", {
         params: {
-            cursor: 0,
+            cursor,
             limit: 20,
             search: "",
             order,
         },
     });
 
-    return response.data.data.data;
+    return response.data.data;
 }
 
 export async function getLp(lpid: string) {
@@ -21,5 +26,17 @@ export async function getLp(lpid: string) {
 
 export async function createLp(payload: CreateLpRequest) {
     const response = await axiosInstance.post<CommonResponse<Lp>>("/lps", payload);
+    return response.data.data;
+}
+
+export async function getLpComments(lpId: string, { cursor = 0, order }: InfiniteListParams) {
+    const response = await axiosInstance.get<CommonResponse<CommentListData>>(`/lps/${lpId}/comments`, {
+        params: {
+            cursor,
+            limit: 10,
+            order,
+        },
+    });
+
     return response.data.data;
 }

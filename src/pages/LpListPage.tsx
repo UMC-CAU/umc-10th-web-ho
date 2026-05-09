@@ -1,18 +1,52 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { getLps } from "../apis/lps";
 import LpCard from "../components/LpCard";
-import { ErrorState, LoadingState } from "../components/QueryState";
+import { ErrorState } from "../components/QueryState";
+import { LpCardSkeletonGrid } from "../components/Skeletons";
 import type { SortOrder } from "../types/lp";
 
 export default function LpListPage() {
     const [sort, setSort] = useState<SortOrder>("desc");
-    const { data: lps = [], isLoading, isError, refetch } = useQuery({
+    const loadMoreRef = useRef<HTMLDivElement | null>(null);
+    const {
+        data,
+        isPending,
+        isError,
+        refetch,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+    } = useInfiniteQuery({
         queryKey: ["lps", sort],
-        queryFn: () => getLps(sort),
+        queryFn: ({ pageParam }) => getLps({ cursor: pageParam, order: sort }),
+        initialPageParam: 0,
+        getNextPageParam: (lastPage) => (lastPage.hasNext ? lastPage.nextCursor ?? undefined : undefined),
         staleTime: 1000 * 60,
         gcTime: 1000 * 60 * 5,
     });
+    const lps = data?.pages.flatMap((page) => page.data) ?? [];
+
+    useEffect(() => {
+        const target = loadMoreRef.current;
+
+        if (!target) {
+            return;
+        }
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+                    void fetchNextPage();
+                }
+            },
+            { rootMargin: "240px 0px" },
+        );
+
+        observer.observe(target);
+
+        return () => observer.disconnect();
+    }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
     return (
         <section className="mx-auto max-w-7xl">
@@ -43,15 +77,23 @@ export default function LpListPage() {
                 </div>
             </div>
 
-            {isLoading ? <LoadingState /> : null}
+            {isPending ? <LpCardSkeletonGrid /> : null}
             {isError ? <ErrorState onRetry={() => void refetch()} /> : null}
-            {!isLoading && !isError ? (
+            {!isPending && !isError ? (
                 lps.length > 0 ? (
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                        {lps.map((lp) => (
-                            <LpCard key={lp.id} lp={lp} />
-                        ))}
-                    </div>
+                    <>
+                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                            {lps.map((lp) => (
+                                <LpCard key={lp.id} lp={lp} />
+                            ))}
+                        </div>
+                        {isFetchingNextPage ? (
+                            <div className="mt-4">
+                                <LpCardSkeletonGrid count={4} />
+                            </div>
+                        ) : null}
+                        <div ref={loadMoreRef} className="h-8" aria-hidden="true" />
+                    </>
                 ) : (
                     <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
                         등록된 LP가 없습니다.

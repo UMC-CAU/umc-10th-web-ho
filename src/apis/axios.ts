@@ -1,4 +1,15 @@
-import axios from "axios";
+import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
+
+type RetryAxiosRequestConfig = InternalAxiosRequestConfig & {
+    _retry?: boolean;
+};
+
+type RefreshResponse = {
+    data?: {
+        accessToken?: string;
+        refreshToken?: string;
+    };
+};
 
 const axiosInstance = axios.create({
     baseURL: import.meta.env.VITE_SERVER_API_URL,
@@ -28,12 +39,12 @@ axiosInstance.interceptors.request.use((config) => {
 // Refresh queue to avoid multiple concurrent refresh calls
 let isRefreshing = false;
 let failedQueue: Array<{
-    resolve: (value?: any) => void;
-    reject: (error: any) => void;
-    config: any;
+    resolve: (value?: unknown) => void;
+    reject: (error: unknown) => void;
+    config: RetryAxiosRequestConfig;
 }> = [];
 
-const processQueue = (error: any, token: string | null = null) => {
+const processQueue = (error: unknown, token: string | null = null) => {
     failedQueue.forEach((prom) => {
         if (error) {
             prom.reject(error);
@@ -50,8 +61,8 @@ const processQueue = (error: any, token: string | null = null) => {
 
 axiosInstance.interceptors.response.use(
     (response) => response,
-    async (error) => {
-        const originalRequest = error.config;
+    async (error: AxiosError) => {
+        const originalRequest = error.config as RetryAxiosRequestConfig | undefined;
 
         // If no response or not a 401, just reject
         if (!error.response || error.response.status !== 401) {
@@ -74,7 +85,9 @@ axiosInstance.interceptors.response.use(
             try {
                 window.localStorage.removeItem("ACCESS_TOKEN");
                 window.localStorage.removeItem("REFRESH_TOKEN");
-            } catch {}
+            } catch {
+                // Ignore storage errors during forced logout.
+            }
             window.location.href = '/login';
             return Promise.reject(error);
         }
@@ -95,7 +108,9 @@ axiosInstance.interceptors.response.use(
             try {
                 window.localStorage.removeItem("ACCESS_TOKEN");
                 window.localStorage.removeItem("REFRESH_TOKEN");
-            } catch {}
+            } catch {
+                // Ignore storage errors during forced logout.
+            }
             window.location.href = '/login';
             return Promise.reject(error);
         }
@@ -104,7 +119,11 @@ axiosInstance.interceptors.response.use(
         if (isRefreshing) {
             console.log('[Axios] Refresh in progress, queueing request...');
             return new Promise((resolve, reject) => {
-                failedQueue.push({ resolve, reject, config: originalRequest });
+                if (originalRequest) {
+                    failedQueue.push({ resolve, reject, config: originalRequest });
+                } else {
+                    reject(error);
+                }
             });
         }
 
@@ -113,7 +132,7 @@ axiosInstance.interceptors.response.use(
 
         try {
             // Call refresh endpoint directly with axios (not axiosInstance) to avoid interceptors
-            const refreshResponse = await axios.post(refreshEndpoint, { refresh: refreshToken });
+            const refreshResponse = await axios.post<RefreshResponse>(refreshEndpoint, { refresh: refreshToken });
             console.log('[Axios] Refresh response received:', refreshResponse?.status);
 
             const newAccess = refreshResponse?.data?.data?.accessToken;
@@ -144,6 +163,10 @@ axiosInstance.interceptors.response.use(
             processQueue(null, newAccess ?? null);
 
             // Retry original request with new token
+            if (!originalRequest) {
+                return Promise.reject(error);
+            }
+
             originalRequest._retry = true;
             if (newAccess) {
                 originalRequest.headers = originalRequest.headers ?? {};
@@ -159,7 +182,9 @@ axiosInstance.interceptors.response.use(
             try {
                 window.localStorage.removeItem("ACCESS_TOKEN");
                 window.localStorage.removeItem("REFRESH_TOKEN");
-            } catch {}
+            } catch {
+                // Ignore storage errors during forced logout.
+            }
             window.location.href = '/login';
             return Promise.reject(refreshError);
         }
