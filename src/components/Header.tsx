@@ -1,7 +1,6 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { postSignOut } from "../apis/auth";
+import { useLogoutMutation } from "../hooks/useAuthMutations";
 import { useCurrentUser } from "../hooks/useCurrentUser";
-import { useLocalStorage } from "../hooks/useLocalStorage";
 
 type HeaderProps = {
     onMenuClick: () => void;
@@ -10,20 +9,7 @@ type HeaderProps = {
 export default function Header({ onMenuClick }: HeaderProps) {
     const navigate = useNavigate();
     const { user, isLoggedIn } = useCurrentUser();
-    const { removeItem: removeAccessToken } = useLocalStorage<string>("ACCESS_TOKEN");
-    const { removeItem: removeRefreshToken } = useLocalStorage<string>("REFRESH_TOKEN");
-    const { removeItem: removeUser } = useLocalStorage<string>("USER");
-
-    const handleLogout = async () => {
-        try {
-            await postSignOut();
-        } finally {
-            removeAccessToken();
-            removeRefreshToken();
-            removeUser();
-            navigate("/login", { replace: true });
-        }
-    };
+    const logoutMutation = useLogoutMutation();
 
     return (
         <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-4">
@@ -34,14 +20,6 @@ export default function Header({ onMenuClick }: HeaderProps) {
                     className="inline-flex h-10 w-10 items-center justify-center rounded-md text-gray-700 hover:bg-gray-100 md:hidden"
                     aria-label="사이드바 열기"
                 >
-                    {/*
-                      Vite에서 SVG를 쓰는 방법:
-                      1. JSX inline SVG로 직접 작성
-                      2. public 폴더에 SVG 파일을 넣고 <img src="/menu.svg" />로 사용
-                      3. SVGR 설정 후 React 컴포넌트처럼 import해서 사용
-
-                      현재 버거 아이콘은 JSX inline SVG 방식으로 사용합니다.
-                    */}
                     <svg
                         width="48"
                         height="48"
@@ -87,15 +65,14 @@ export default function Header({ onMenuClick }: HeaderProps) {
             <div className="flex shrink-0 items-center gap-2 text-sm">
                 {isLoggedIn ? (
                     <>
-                        <span className="hidden text-gray-700 sm:inline">
-                            {user?.name ?? "사용자"}님 반갑습니다.
-                        </span>
+                        <span className="hidden text-gray-700 sm:inline">{user?.name ?? "사용자"}님 반갑습니다.</span>
                         <button
                             type="button"
-                            onClick={handleLogout}
-                            className="rounded-md border border-gray-200 px-3 py-2 text-gray-700 hover:bg-gray-50"
+                            onClick={() => logoutMutation.mutate()}
+                            disabled={logoutMutation.isPending}
+                            className="rounded-md border border-gray-200 px-3 py-2 text-gray-700 hover:bg-gray-50 disabled:opacity-60"
                         >
-                            로그아웃
+                            {logoutMutation.isPending ? "로그아웃 중..." : "로그아웃"}
                         </button>
                     </>
                 ) : (

@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { useInfiniteQuery } from "@tanstack/react-query";
-import { getLps } from "../apis/lps";
 import LpCard from "../components/LpCard";
 import { ErrorState } from "../components/QueryState";
 import { LpCardSkeletonGrid } from "../components/Skeletons";
+import { useLpsQuery } from "../hooks/useLpQueries";
 import type { SortOrder } from "../types/lp";
 
 export default function LpListPage() {
@@ -17,14 +16,7 @@ export default function LpListPage() {
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage,
-    } = useInfiniteQuery({
-        queryKey: ["lps", sort],
-        queryFn: ({ pageParam }) => getLps({ cursor: pageParam, order: sort }),
-        initialPageParam: 0,
-        getNextPageParam: (lastPage) => (lastPage.hasNext ? lastPage.nextCursor ?? undefined : undefined),
-        staleTime: 1000 * 60,
-        gcTime: 1000 * 60 * 5,
-    });
+    } = useLpsQuery(sort);
     const lps = data?.pages.flatMap((page) => page.data) ?? [];
 
     useEffect(() => {

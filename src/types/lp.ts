@@ -22,6 +22,8 @@ export interface Author {
     id: number;
     name?: string;
     email?: string;
+    bio?: string | null;
+    avatar?: string | null;
 }
 
 export interface Lp {
@@ -35,6 +37,7 @@ export interface Lp {
     updatedAt: string;
     tags: Tag[];
     likes: Like[];
+    author?: Author;
 }
 
 export interface LpListData {
@@ -65,4 +68,14 @@ export interface CreateLpRequest {
     thumbnail: string;
     tags: string[];
     published: boolean;
+}
+
+export type UpdateLpRequest = CreateLpRequest;
+
+export interface CreateCommentRequest {
+    content: string;
+}
+
+export interface UpdateCommentRequest {
+    content: string;
 }

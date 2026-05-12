@@ -1,10 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { postLogin } from "../apis/auth";
 import GoogleLoginButton from "../components/GoogleLoginButton";
-import { useLocalStorage } from "../hooks/useLocalStorage";
-import { loginSchema, type AuthUser, type LoginFormValues } from "../types/auth";
+import { useLoginMutation } from "../hooks/useAuthMutations";
+import { loginSchema, type LoginFormValues } from "../types/auth";
 
 type LocationState = {
     from?: {
@@ -16,16 +15,14 @@ type LocationState = {
 export default function Login() {
     const navigate = useNavigate();
     const location = useLocation();
-    const { setItem: setAuthToken } = useLocalStorage<string>("ACCESS_TOKEN");
-    const { setItem: setRefreshToken } = useLocalStorage<string>("REFRESH_TOKEN");
-    const { setItem: setUser } = useLocalStorage<AuthUser>("USER");
     const state = location.state as LocationState | null;
     const fromPath = state?.from ? `${state.from.pathname}${state.from.search ?? ""}` : "/";
+    const loginMutation = useLoginMutation(fromPath);
 
     const {
         register,
         handleSubmit,
-        formState: { errors, isValid, isSubmitting },
+        formState: { errors, isValid },
     } = useForm<LoginFormValues>({
         resolver: zodResolver(loginSchema),
         mode: "onBlur",
@@ -35,13 +32,7 @@ export default function Login() {
         },
     });
 
-    const handleLogin = async (values: LoginFormValues) => {
-        const user = await postLogin(values);
-        setAuthToken(user.accessToken);
-        if (user.refreshToken) setRefreshToken(user.refreshToken);
-        setUser({ id: user.id, name: user.name, email: user.email });
-        navigate(fromPath, { replace: true });
-    };
+    const handleLogin = (values: LoginFormValues) => loginMutation.mutate(values);
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
@@ -72,16 +63,14 @@ export default function Login() {
                         placeholder="비밀번호"
                         {...register("password")}
                     />
-                    {errors.password ? (
-                        <p className="text-sm text-red-500">{errors.password.message}</p>
-                    ) : null}
+                    {errors.password ? <p className="text-sm text-red-500">{errors.password.message}</p> : null}
 
                     <button
                         className="rounded-md bg-gray-900 px-4 py-2 text-white disabled:cursor-not-allowed disabled:opacity-50"
-                        disabled={!isValid || isSubmitting}
+                        disabled={!isValid || loginMutation.isPending}
                         type="submit"
                     >
-                        {isSubmitting ? "로그인 중..." : "로그인"}
+                        {loginMutation.isPending ? "로그인 중..." : "로그인"}
                     </button>
                 </div>
 

@@ -1,5 +1,5 @@
 import axiosInstance from "./axios";
-import type { AuthUser } from "../types/auth";
+import type { AuthUser, UpdateProfileRequest } from "../types/auth";
 
 export interface SignupRequest {
     email: string;
@@ -54,4 +54,14 @@ export function getGoogleLoginUrl() {
 export async function postSignOut() {
     const response = await axiosInstance.post("/auth/signout");
     return response.data;
+}
+
+export async function patchMe(payload: UpdateProfileRequest) {
+    const response = await axiosInstance.patch<CommonResponse<AuthUser>>("/users", payload);
+    return response.data.data;
+}
+
+export async function deleteMe() {
+    const response = await axiosInstance.delete<CommonResponse<boolean>>("/users");
+    return response.data.data;
 }

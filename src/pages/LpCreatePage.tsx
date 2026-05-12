@@ -1,19 +1,15 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createLp } from "../apis/lps";
+import { useCreateLpMutation } from "../hooks/useLpMutations";
 
 export default function LpCreatePage() {
     const navigate = useNavigate();
-    const queryClient = useQueryClient();
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [thumbnail, setThumbnail] = useState("");
     const [tags, setTags] = useState("");
-    const mutation = useMutation({
-        mutationFn: createLp,
+    const mutation = useCreateLpMutation({
         onSuccess: (lp) => {
-            void queryClient.invalidateQueries({ queryKey: ["lps"] });
             navigate(`/lp/${lp.id}`);
         },
     });
@@ -64,9 +60,7 @@ export default function LpCreatePage() {
                     placeholder="본문"
                     required
                 />
-                {mutation.isError ? (
-                    <p className="text-sm text-red-500">LP 생성에 실패했습니다. 다시 시도해주세요.</p>
-                ) : null}
+                {mutation.isError ? <p className="text-sm text-red-500">LP 생성에 실패했습니다. 다시 시도해주세요.</p> : null}
                 <button
                     type="submit"
                     disabled={mutation.isPending}

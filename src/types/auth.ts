@@ -56,4 +56,14 @@ export interface AuthUser {
     id: number;
     name: string;
     email: string;
+    bio?: string | null;
+    avatar?: string | null;
+    createdAt?: string;
+    updatedAt?: string;
+}
+
+export interface UpdateProfileRequest {
+    name?: string;
+    bio?: string;
+    avatar?: string;
 }

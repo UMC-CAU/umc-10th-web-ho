@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getMe } from "../apis/auth";
 import { useLocalStorage } from "./useLocalStorage";
 import type { AuthUser } from "../types/auth";
+import { queryKeys } from "./queryKeys";
 
 export function useCurrentUser() {
     const { getItem, setItem } = useLocalStorage<AuthUser>("USER");
@@ -10,7 +11,7 @@ export function useCurrentUser() {
     const storedUser = getItem();
 
     const query = useQuery({
-        queryKey: ["me"],
+        queryKey: queryKeys.me,
         queryFn: async () => {
             const user = await getMe();
             setItem(user);
