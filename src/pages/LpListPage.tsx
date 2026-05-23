@@ -4,12 +4,15 @@ import { ErrorState } from "../components/QueryState";
 import { LpCardSkeletonGrid } from "../components/Skeletons";
 import { useDebounce } from "../hooks/useDebounce";
 import { useLpsQuery } from "../hooks/useLpQueries";
+import { useThrottle } from "../hooks/useThrottle";
 import type { SortOrder } from "../types/lp";
 
 export default function LpListPage() {
     const [sort, setSort] = useState<SortOrder>("desc");
     const [query, setQuery] = useState("");
     const debouncedQuery = useDebounce(query, 300);
+    const [loadMoreSignal, setLoadMoreSignal] = useState(0);
+    const throttledLoadMoreSignal = useThrottle(loadMoreSignal, 1000);
     const loadMoreRef = useRef<HTMLDivElement | null>(null);
     const {
         data,
@@ -31,8 +34,8 @@ export default function LpListPage() {
 
         const observer = new IntersectionObserver(
             ([entry]) => {
-                if (entry?.isIntersecting && hasNextPage && !isFetchingNextPage) {
-                    void fetchNextPage();
+                if (entry?.isIntersecting) {
+                    setLoadMoreSignal(Date.now());
                 }
             },
             { rootMargin: "240px 0px" },
@@ -41,7 +44,16 @@ export default function LpListPage() {
         observer.observe(target);
 
         return () => observer.disconnect();
-    }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+    }, [lps.length]);
+
+    useEffect(() => {
+        if (throttledLoadMoreSignal === 0 || !hasNextPage || isFetchingNextPage) {
+            return;
+        }
+
+        console.log("다음 페이지 요청:", new Date().toLocaleTimeString());
+        void fetchNextPage();
+    }, [fetchNextPage, hasNextPage, isFetchingNextPage, throttledLoadMoreSignal]);
 
     return (
         <section className="mx-auto max-w-7xl">

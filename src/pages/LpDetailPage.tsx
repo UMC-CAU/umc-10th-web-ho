@@ -7,6 +7,7 @@ import { useCreateCommentMutation, useDeleteCommentMutation, useUpdateCommentMut
 import { useCurrentUser } from "../hooks/useCurrentUser";
 import { useDeleteLpMutation, useToggleLikeMutation, useUpdateLpMutation } from "../hooks/useLpMutations";
 import { useLpCommentsQuery, useLpDetailQuery } from "../hooks/useLpQueries";
+import { useThrottle } from "../hooks/useThrottle";
 import type { Comment, Lp, SortOrder } from "../types/lp";
 import { formatDate } from "../utils/formatDate";
 
@@ -190,6 +191,8 @@ export default function LpDetailPage() {
     const commentLoadMoreRef = useRef<HTMLDivElement | null>(null);
     const [commentContent, setCommentContent] = useState("");
     const [isEditingLp, setIsEditingLp] = useState(false);
+    const [commentLoadMoreSignal, setCommentLoadMoreSignal] = useState(0);
+    const throttledCommentLoadMoreSignal = useThrottle(commentLoadMoreSignal, 1000);
     const { user } = useCurrentUser();
     const { data: lp, isLoading, isError, refetch } = useLpDetailQuery(lpId);
     const {
@@ -219,8 +222,8 @@ export default function LpDetailPage() {
 
         const observer = new IntersectionObserver(
             ([entry]) => {
-                if (entry?.isIntersecting && hasNextPage && !isFetchingNextPage) {
-                    void fetchNextPage();
+                if (entry?.isIntersecting) {
+                    setCommentLoadMoreSignal(Date.now());
                 }
             },
             { rootMargin: "160px 0px" },
@@ -229,7 +232,16 @@ export default function LpDetailPage() {
         observer.observe(target);
 
         return () => observer.disconnect();
-    }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+    }, [comments.length]);
+
+    useEffect(() => {
+        if (throttledCommentLoadMoreSignal === 0 || !hasNextPage || isFetchingNextPage) {
+            return;
+        }
+
+        console.log("다음 페이지 요청:", new Date().toLocaleTimeString());
+        void fetchNextPage();
+    }, [fetchNextPage, hasNextPage, isFetchingNextPage, throttledCommentLoadMoreSignal]);
 
     const handleOrderChange = (nextOrder: SortOrder) => {
         setSearchParams((currentParams) => {
