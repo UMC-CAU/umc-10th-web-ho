@@ -2,11 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import LpCard from "../components/LpCard";
 import { ErrorState } from "../components/QueryState";
 import { LpCardSkeletonGrid } from "../components/Skeletons";
+import { useDebounce } from "../hooks/useDebounce";
 import { useLpsQuery } from "../hooks/useLpQueries";
 import type { SortOrder } from "../types/lp";
 
 export default function LpListPage() {
     const [sort, setSort] = useState<SortOrder>("desc");
+    const [query, setQuery] = useState("");
+    const debouncedQuery = useDebounce(query, 300);
     const loadMoreRef = useRef<HTMLDivElement | null>(null);
     const {
         data,
@@ -16,7 +19,7 @@ export default function LpListPage() {
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage,
-    } = useLpsQuery(sort);
+    } = useLpsQuery(sort, debouncedQuery);
     const lps = data?.pages.flatMap((page) => page.data) ?? [];
 
     useEffect(() => {
@@ -42,31 +45,42 @@ export default function LpListPage() {
 
     return (
         <section className="mx-auto max-w-7xl">
-            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-950">LP 목록</h1>
-                    <p className="mt-1 text-sm text-gray-500">좋아하는 LP를 둘러보고 상세 정보를 확인해보세요.</p>
+            <div className="mb-6 flex flex-col gap-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-950">LP 목록</h1>
+                        <p className="mt-1 text-sm text-gray-500">
+                            좋아하는 LP를 검색하고 상세 정보를 확인해보세요.
+                        </p>
+                    </div>
+                    <div className="inline-flex w-fit rounded-md border border-gray-200 bg-white p-1">
+                        <button
+                            type="button"
+                            onClick={() => setSort("desc")}
+                            className={`rounded px-3 py-2 text-sm ${
+                                sort === "desc" ? "bg-gray-900 text-white" : "text-gray-500 hover:text-gray-900"
+                            }`}
+                        >
+                            최신순
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setSort("asc")}
+                            className={`rounded px-3 py-2 text-sm ${
+                                sort === "asc" ? "bg-gray-900 text-white" : "text-gray-500 hover:text-gray-900"
+                            }`}
+                        >
+                            오래된순
+                        </button>
+                    </div>
                 </div>
-                <div className="inline-flex w-fit rounded-md border border-gray-200 bg-white p-1">
-                    <button
-                        type="button"
-                        onClick={() => setSort("desc")}
-                        className={`rounded px-3 py-2 text-sm ${
-                            sort === "desc" ? "bg-gray-900 text-white" : "text-gray-500 hover:text-gray-900"
-                        }`}
-                    >
-                        최신순
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setSort("asc")}
-                        className={`rounded px-3 py-2 text-sm ${
-                            sort === "asc" ? "bg-gray-900 text-white" : "text-gray-500 hover:text-gray-900"
-                        }`}
-                    >
-                        오래된순
-                    </button>
-                </div>
+                <input
+                    type="search"
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder="검색어를 입력하세요"
+                    className="min-h-11 w-full rounded-md border border-gray-200 bg-white px-4 py-2 text-sm outline-none focus:border-gray-900"
+                />
             </div>
 
             {isPending ? <LpCardSkeletonGrid /> : null}
@@ -88,7 +102,7 @@ export default function LpListPage() {
                     </>
                 ) : (
                     <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
-                        등록된 LP가 없습니다.
+                        {debouncedQuery.trim().length > 0 ? "검색 결과가 없습니다." : "등록된 LP가 없습니다."}
                     </div>
                 )
             ) : null}

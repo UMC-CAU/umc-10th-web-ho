@@ -5,6 +5,7 @@ export const queryKeys = {
     lps: {
         all: ["lps"] as const,
         list: (order: SortOrder) => ["lps", order] as const,
+        search: (query: string, order: SortOrder) => ["search", query, order] as const,
         detail: (lpId: string) => ["lp", lpId] as const,
         comments: (lpId: string, order: SortOrder) => ["lpComments", lpId, order] as const,
         commentsAll: (lpId: string) => ["lpComments", lpId] as const,

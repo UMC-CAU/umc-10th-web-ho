@@ -16,14 +16,15 @@ import type {
 type InfiniteListParams = {
     cursor?: number;
     order: SortOrder;
+    search?: string;
 };
 
-export async function getLps({ cursor = 0, order }: InfiniteListParams) {
+export async function getLps({ cursor = 0, order, search = "" }: InfiniteListParams) {
     const response = await axiosInstance.get<CommonResponse<LpListData>>("/lps", {
         params: {
             cursor,
             limit: 20,
-            search: "",
+            search,
             order,
         },
     });

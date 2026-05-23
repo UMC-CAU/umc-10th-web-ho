@@ -3,10 +3,19 @@ import { getLp, getLpComments, getLps } from "../apis/lps";
 import type { SortOrder } from "../types/lp";
 import { queryKeys } from "./queryKeys";
 
-export function useLpsQuery(order: SortOrder) {
+export function useLpsQuery(order: SortOrder, debouncedQuery = "") {
+    const trimmedQuery = debouncedQuery.trim();
+    const queryKey = trimmedQuery.length > 0 ? queryKeys.lps.search(trimmedQuery, order) : queryKeys.lps.list(order);
+
     return useInfiniteQuery({
-        queryKey: queryKeys.lps.list(order),
-        queryFn: ({ pageParam }) => getLps({ cursor: pageParam, order }),
+        // 검색어가 있으면 debouncedQuery를 queryKey에 포함하고, 없으면 기존 LP 목록 캐시를 사용합니다.
+        queryKey,
+        queryFn: ({ pageParam }) =>
+            getLps({
+                cursor: pageParam,
+                order,
+                search: trimmedQuery,
+            }),
         initialPageParam: 0,
         getNextPageParam: (lastPage) => (lastPage.hasNext ? lastPage.nextCursor ?? undefined : undefined),
         staleTime: 1000 * 60,
