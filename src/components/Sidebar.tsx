@@ -21,14 +21,36 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <SidebarContent />
             </aside>
 
-            {isOpen ? (
-                <div className="fixed inset-0 z-40 md:hidden" aria-modal="true" role="dialog">
-                    <button type="button" className="absolute inset-0 bg-black/40" onClick={onClose} aria-label="사이드바 닫기" />
-                    <aside className="relative h-full w-64 bg-white p-4 shadow-xl">
-                        <SidebarContent onNavigate={onClose} />
-                    </aside>
-                </div>
-            ) : null}
+            <div
+                className={`fixed inset-0 z-50 md:hidden ${isOpen ? "pointer-events-auto" : "pointer-events-none"}`}
+                aria-hidden={!isOpen}
+                aria-modal="true"
+                role="dialog"
+            >
+                <button
+                    type="button"
+                    className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ease-in-out ${
+                        isOpen ? "opacity-100" : "opacity-0"
+                    }`}
+                    onClick={onClose}
+                    aria-label="사이드바 닫기"
+                />
+                <aside
+                    className={`relative flex h-full w-64 flex-col bg-white p-4 shadow-xl transition-transform duration-300 ease-in-out ${
+                        isOpen ? "translate-x-0" : "-translate-x-full"
+                    }`}
+                >
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="mb-4 self-end rounded-md px-3 py-2 text-sm text-gray-500 transition hover:bg-gray-100 hover:text-gray-900"
+                        aria-label="사이드바 닫기"
+                    >
+                        닫기
+                    </button>
+                    <SidebarContent onNavigate={onClose} />
+                </aside>
+            </div>
         </>
     );
 }
@@ -76,14 +98,14 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4">
                     <div className="w-full max-w-sm rounded-lg bg-white p-6 shadow-xl">
                         <h2 className="text-lg font-semibold text-gray-950">정말 탈퇴하시겠습니까?</h2>
-                        <p className="mt-2 text-sm text-gray-600">예를 누르면 계정 삭제 API를 호출합니다.</p>
+                        <p className="mt-2 text-sm text-gray-600">확인을 누르면 계정 삭제 API를 호출합니다.</p>
                         <div className="mt-6 flex justify-end gap-2">
                             <button
                                 type="button"
                                 className="rounded-md border border-gray-200 px-4 py-2 text-sm hover:bg-gray-50"
                                 onClick={() => setIsConfirmOpen(false)}
                             >
-                                아니오
+                                아니요
                             </button>
                             <button
                                 type="button"

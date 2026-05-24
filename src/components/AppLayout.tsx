@@ -1,18 +1,19 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
+import { useSidebar } from "../hooks/useSidebar";
 import Header from "./Header";
 import LpCreateModal from "./LpCreateModal";
 import Sidebar from "./Sidebar";
 
 export default function AppLayout() {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const sidebar = useSidebar();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
     return (
         <div className="min-h-screen bg-gray-50 text-gray-950">
-            <Header onMenuClick={() => setIsSidebarOpen(true)} />
+            <Header onMenuClick={sidebar.toggle} />
             <div className="flex min-h-[calc(100vh-64px)]">
-                <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+                <Sidebar isOpen={sidebar.isOpen} onClose={sidebar.close} />
                 <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8">
                     <Outlet />
                 </main>
