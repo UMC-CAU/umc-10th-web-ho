@@ -1,5 +1,5 @@
 import { useDispatch } from 'react-redux'
-import { decrease, increase, removeItem } from '../store/cartSlice'
+import { decrease, increase, removeItem } from '../features/cart/cartSlice'
 import type { AppDispatch } from '../store/store'
 import type { CartItem as CartItemType } from '../types/cart'
 
