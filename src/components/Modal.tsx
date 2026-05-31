@@ -1,14 +1,11 @@
-import { useDispatch } from 'react-redux'
-import { clearCart } from '../features/cart/cartSlice'
-import { closeModal } from '../features/modal/modalSlice'
-import type { AppDispatch } from '../store/store'
+import { useCartStore } from '../store/useCartStore'
 
 function Modal() {
-  const dispatch = useDispatch<AppDispatch>()
+  const { clearCart, closeModal } = useCartStore()
 
   const handleClearCart = () => {
-    dispatch(clearCart())
-    dispatch(closeModal())
+    clearCart()
+    closeModal()
   }
 
   return (
@@ -24,7 +21,7 @@ function Modal() {
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <button
             type="button"
-            onClick={() => dispatch(closeModal())}
+            onClick={closeModal}
             className="rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-100"
           >
             아니요

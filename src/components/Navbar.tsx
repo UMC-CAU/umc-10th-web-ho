@@ -1,18 +1,17 @@
-import { useSelector } from 'react-redux'
-import type { RootState } from '../store/store'
+import { useCartStore } from '../store/useCartStore'
 
 function Navbar() {
-  const amount = useSelector((state: RootState) => state.cart.amount)
+  const amount = useCartStore((state) => state.amount)
 
   return (
     <header className="border-b border-slate-200/80 bg-slate-950 text-white shadow-lg shadow-slate-950/10">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-300">
-            React + Redux Toolkit
+            React + Zustand
           </p>
           <h1 className="mt-1 text-xl font-bold tracking-tight sm:text-2xl">
-            Redux Toolkit 장바구니
+            Zustand 장바구니
           </h1>
         </div>
 

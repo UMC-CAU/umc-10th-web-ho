@@ -1,6 +1,4 @@
-import { useDispatch } from 'react-redux'
-import { decrease, increase, removeItem } from '../features/cart/cartSlice'
-import type { AppDispatch } from '../store/store'
+import { useCartStore } from '../store/useCartStore'
 import type { CartItem as CartItemType } from '../types/cart'
 
 interface CartItemProps {
@@ -8,7 +6,7 @@ interface CartItemProps {
 }
 
 function CartItem({ item }: CartItemProps) {
-  const dispatch = useDispatch<AppDispatch>()
+  const { decrease, increase, removeItem } = useCartStore()
 
   return (
     <article className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md sm:flex-row sm:items-center sm:justify-between sm:p-5">
@@ -34,7 +32,7 @@ function CartItem({ item }: CartItemProps) {
         <div className="flex items-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
           <button
             type="button"
-            onClick={() => dispatch(decrease(item.id))}
+            onClick={() => decrease(item.id)}
             className="px-4 py-2 text-lg font-semibold text-slate-600 transition hover:bg-slate-200/70 hover:text-slate-900"
             aria-label={`${item.title} 수량 감소`}
           >
@@ -45,7 +43,7 @@ function CartItem({ item }: CartItemProps) {
           </span>
           <button
             type="button"
-            onClick={() => dispatch(increase(item.id))}
+            onClick={() => increase(item.id)}
             className="px-4 py-2 text-lg font-semibold text-slate-600 transition hover:bg-slate-200/70 hover:text-slate-900"
             aria-label={`${item.title} 수량 증가`}
           >
@@ -55,7 +53,7 @@ function CartItem({ item }: CartItemProps) {
 
         <button
           type="button"
-          onClick={() => dispatch(removeItem(item.id))}
+          onClick={() => removeItem(item.id)}
           className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-100"
         >
           삭제
